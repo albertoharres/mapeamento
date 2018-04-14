@@ -5,7 +5,7 @@ var firebase = require('firebase');
 class DB extends EventEmitter {
 	constructor () {
 		super();
-		this.initialDataLoaded = false;
+		this.initialDataLoaded= false;
 		this.data = {}
 		var config = {
 			apiKey: process.env.API_KEY,
@@ -30,7 +30,6 @@ class DB extends EventEmitter {
 		// load inital criaturas
 		this.criaturas_db.once('value', function(snapshot){			
 			//self.data = snapshot.val();	
-			//self.initialDataLoaded = true;
 			snapshot.forEach(function(childSnapshot) {
 				// key will be "ada" the first time and "alan" the second time				
 				self.data[ childSnapshot.val().id ] = {
@@ -39,20 +38,20 @@ class DB extends EventEmitter {
 					pontos: []
 				}
 			});
-		});
-		// load initial points
+		});			
 		this.pontos_db.once('value', function(snapshot){			
-			//self.data = snapshot.val();	
-			self.initialDataLoaded = true;
 			snapshot.forEach(function(childSnapshot) {
-				// push pontos para dentro do objeto  			
+				// push pontos para dentro do objeto
+				self.initialDataLoaded = true;
+
 				self.data[ childSnapshot.val().criatura_id ].pontos.push({
 					latlng: childSnapshot.val().latlng, 
 					timestamp: childSnapshot.val().timestamp,
-				})
-			});
-			console.log(self.data);
+				})				
+			});	
+			self.emit('loaded', null);			
 		});		
+
 	}
 
 	addEvents(){
@@ -62,14 +61,15 @@ class DB extends EventEmitter {
 			if(self.initialDataLoaded){
 				let key = Object.keys(snapshot.val())[0];
 
-				console.log('val', snapshot.val()[key]);
+				// console.log('val', snapshot.val()[key]);
 				// check if criatura is already set ( if is actually new )
-				let criatura_id = snapshot.val()[key]['id'];				
+				
+				let criatura_id = snapshot.val()[key]['id'];			
 				// is new !
 				let obj = {
 					name: snapshot.val()[key]['name'], 
 					color: snapshot.val()[key]['color'],
-					pontos: {}
+					pontos: []
 				}						
 				self.data[criatura_id] = obj;
 				// emit event
@@ -79,24 +79,25 @@ class DB extends EventEmitter {
 		// get new ponto		
 		this.pontos_db.limitToLast(1).on('value', function(snapshot) {
 			if(self.initialDataLoaded){
-				console.log('val', Object.keys(snapshot.val())[0]);
+				// console.log('val', Object.keys(snapshot.val())[0]);
 
 				let key = Object.keys(snapshot.val())[0];
 				// check if criatura is already set ( if is actually new )
 				let criatura_id = snapshot.val()[key]['criatura_id'];
 				let ponto_id = snapshot.val()[key]['id'];
-				console.log(self.data[criatura_id], criatura_id, self.data);
+				// console.log(self.data[criatura_id], criatura_id, self.data);
 
 				if( ( criatura_id in self.data) ){
 					// criatura exists !
 					let obj = {
 						latlng: snapshot.val()[key]['latlng'], 
-						timestamp: snapshot.val()[key]['timestamp'],
+						timestamp: snapshot.val()[key]['timestamp']
 					}		
 					// set local data
-					self.data[ criatura_id ].pontos[ponto_id] = obj;			 
+					// console.log('data', self.data[ criatura_id ].pontos)
+					self.data[ criatura_id ].pontos.push(obj);			 
 					// emit event
-					self.emit('newPonto', obj)
+					self.emit('newPonto', criatura_id)
 				} else {
 					console.log('criatura from point doesnt exist')
 					return; 
@@ -107,7 +108,8 @@ class DB extends EventEmitter {
 
 	savePoint(latlng){
 		let ponto_id = makeId();
-		let criatura_id = window['criatura_id']; 
+		let criatura_id = window['criatura']['id']; 
+		console.log('criatura_id', criatura_id)
 		// set obj to be sent to db		
 		let ponto = {
 			id: ponto_id,
@@ -116,17 +118,17 @@ class DB extends EventEmitter {
 			criatura_id: criatura_id			
 		}
 		// add to local data
-		this.data[criatura_id].pontos[ponto_id] = {
+		this.data[criatura_id].pontos.push({
 			latlng: latlng,
 			timestamp: new Date().getTime()
-		}
+		});
 		// push to DB
 		this.pontos_db.push(ponto);
 
 		return ponto;
 	}
 
-	saveUser(){
+	storeUser(){
 		let criatura_id = makeId();
 		let randomColor = random_rgba();
 		var criatura = {
@@ -138,16 +140,22 @@ class DB extends EventEmitter {
 		this.data[criatura_id] = {
 			name: 'criatura',
 			color: randomColor,
-			pontos:{}
+			pontos:[]
 		}
 		// save criatura to local storage	
-		window.localStorage.setItem('criatura_id', criatura_id);
+		window.localStorage.setItem('criatura', criatura);
 		// save criatura as global var		
-		window['criatura_id'] = criatura_id;
+		window['criatura'] = criatura;
 		// push to DB
-		this.criaturas_db.push(criatura);
-
+		//this.criaturas_db.push(criatura);
 		return criatura;
+	}
+
+	saveUser(){
+		var criatura = window['criatura'] || window.localStorage['criatura'];
+		if(criatura != undefined && !null){
+			this.criaturas_db.push(criatura);
+		}
 	}
 }
 

@@ -24,19 +24,24 @@ var Map = {
           zoom: 19,
           center: this.curLoc
         });        
-		this.getPosition();		
+		this.getPosition();				
 		//this.getPointsFromDB();
 	},
 	
 	addEvents(){
 		var self = this;
 		// add point on click 'test'
-		google.maps.event.addListener(map, 'click', function(event) {
+		google.maps.event.addListener(this.map, 'click', function(event) {
 			self.addPoint(event.latLng);
 		 });	
 		 
-		 this.DB.on('newPonto', function(ponto){
-			console.log('novo ponto', ponto); 
+		 this.DB.on('loaded', function(){
+			console.log('loaded!', self.DB.data);
+			self.drawAllPoints(self.DB.data)			
+		 })
+
+		 this.DB.on('newPonto', function(criatura_id){
+			self.drawCriatura(self.DB.data[criatura_id], criatura_id)			
 		 })
 	},
 
@@ -49,6 +54,7 @@ var Map = {
 		this.curLoc = loc;
 		// save point to database
 		this.savePoint(loc);
+		this.DB.saveUser();
 		// listen to position change
 		// 
 		this.getLocationUpdate();
@@ -60,29 +66,49 @@ var Map = {
 		this.savePoint(loc);
 	},	
 
-	drawPoint(latlng){		
+	drawPoint(latlng){
 		var marker = new google.maps.Marker({
 			position: latlng,
-			map: map,
+			map: this.map,
 			title:"Hello World!",
-      		visible: false
+			visible: true,
+			icon: {
+				path: google.maps.SymbolPath.CIRCLE,
+				scale: 1
+			},
 		});	
 	},
 
 	drawShape(coordinates, criatura_id){
+		console.log('coordinates', coordinates)
+
+		var color = this.DB.data[criatura_id]['color'] || window['criatura']['color'];
+		//console.log(color);
+
+		for(var i in coordinates) {
+			this.drawPoint(coordinates[i])
+		}
 		var shape = new google.maps.Polyline({
 			path: coordinates,
-			strokeColor: '#'+(Math.random()*0xFFFFFF<<0).toString(16),
+			strokeColor: color,
 			strokeOpacity: 1.0,
 			strokeWeight: 2
 		  });
-		  shape.setMap(map);
+		  shape.setMap(this.map);
 	},
 
-	drawAllPoints(grouped){
+	drawAllPoints(grouped){		
 		for(var i in grouped){
-			drawShape(grouped[i], i);
+			this.drawCriatura(grouped[i], i);		
 		}
+	},
+
+	drawCriatura(criatura, criatura_id){
+		var _pontos = [];
+		for(var i in criatura.pontos){
+			_pontos.push(criatura.pontos[i].latlng);
+		}
+		if(_pontos.length > 1 ) this.drawShape(_pontos, criatura_id);
 	},
 
 	savePoint(loc){

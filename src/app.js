@@ -16,7 +16,7 @@ var App = {
             window['criatura'] = localStorage['criatura'];
             console.log('set from local creature')
         } else {
-            window['criatura'] = this.DB.saveUser();
+            window['criatura'] = this.DB.storeUser();
             localStorage['criatura'] = window['criatura']; 
             console.log('set from newly created creature');
         }               
