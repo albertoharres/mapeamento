@@ -41,14 +41,19 @@ class DB extends EventEmitter {
 		});			
 		this.pontos_db.once('value', function(snapshot){			
 			snapshot.forEach(function(childSnapshot) {
-				// push pontos para dentro do objeto
-				self.initialDataLoaded = true;
-
-				self.data[ childSnapshot.val().criatura_id ].pontos.push({
-					latlng: childSnapshot.val().latlng, 
-					timestamp: childSnapshot.val().timestamp,
-				})				
+				// push pontos para dentro do objeto				
+				// error 
+				if ( self.data[ childSnapshot.val().criatura_id ] == undefined ) {
+				//	console.log('error', self.data, childSnapshot.val().criatura_id)
+				} else {
+					console.log('pushed');
+					self.data[ childSnapshot.val().criatura_id ].pontos.push({
+						latlng: childSnapshot.val().latlng, 
+						timestamp: childSnapshot.val().timestamp,
+					})				
+				}					
 			});	
+			self.initialDataLoaded = true;
 			self.emit('loaded', null);			
 		});		
 
@@ -127,7 +132,6 @@ class DB extends EventEmitter {
 
 		return ponto;
 	}
-
 	storeUser(){
 		let criatura_id = makeId();
 		let randomColor = random_rgba();
@@ -169,7 +173,7 @@ function makeId() {
 
 function random_rgba() {
     var o = Math.round, r = Math.random, s = 255;
-    return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
+    return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ')';
 }
 
 export default DB

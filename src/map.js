@@ -4,6 +4,7 @@ import $ from 'jquery';
 var leaflet = require('leaflet')
 
 var Map = {
+	isSet: false,
 	el: $(''),
 	map: null, 
 	DB: null, 
@@ -14,7 +15,8 @@ var Map = {
 		// set DB 
 		this.DB = DB;			
 		
-		this.setMap();
+		var googlemaps = '<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFacNeg2lg0_TPHTvl3mXr5_tEWtDIbFQ&callback=window.googlemapsLoaded"></script>'
+		$('body').append(googlemaps);
 
 		this.addEvents();
 	},
@@ -24,24 +26,33 @@ var Map = {
           zoom: 19,
           center: this.curLoc
         });        
-		this.getPosition();				
-		//this.getPointsFromDB();
-	},
-	
-	addEvents(){
-		var self = this;
+		this.getPosition();			
+
+		// draw points
+		// check if points are not set and DB is loaded
+		if(!this.isSet && this.DB.initialDataLoaded){
+			this.drawAllPoints(this.DB.data);
+		}
+		
 		// add point on click 'test'
 		google.maps.event.addListener(this.map, 'click', function(event) {
 			self.addPoint(event.latLng);
 		 });	
-		 
-		 this.DB.on('loaded', function(){
-			console.log('loaded!', self.DB.data);
-			self.drawAllPoints(self.DB.data)			
+	},
+	
+	addEvents(){
+		var self = this;				 
+		this.DB.on('loaded',()=>{		
+			// check if points are not set and map is loaded	
+			if( this.map != null && !this.isSet ){
+				this.drawAllPoints(this.DB.data);
+			}
 		 })
 
 		 this.DB.on('newPonto', function(criatura_id){
-			self.drawCriatura(self.DB.data[criatura_id], criatura_id)			
+			if( this.map != null){
+				self.drawCriatura(self.DB.data[criatura_id], criatura_id)			
+			}
 		 })
 	},
 
@@ -53,8 +64,8 @@ var Map = {
 		// store cur pos
 		this.curLoc = loc;
 		// save point to database
-		this.savePoint(loc);
 		this.DB.saveUser();
+		this.savePoint(loc);
 		// listen to position change
 		// 
 		this.getLocationUpdate();
@@ -66,15 +77,21 @@ var Map = {
 		this.savePoint(loc);
 	},	
 
-	drawPoint(latlng){
+	drawPoint(latlng, criatura_id = window['criatura']['id]']){
+
+		var color = this.DB.data[criatura_id]['color'] || window['criatura']['color'];
+
 		var marker = new google.maps.Marker({
 			position: latlng,
 			map: this.map,
-			title:"Hello World!",
+			title: "Hello World!",
 			visible: true,
 			icon: {
 				path: google.maps.SymbolPath.CIRCLE,
-				scale: 1
+				scale: 1,
+				fillColor: color,
+				strokeColor: color,
+				fillOpacity: 1
 			},
 		});	
 	},
@@ -86,7 +103,7 @@ var Map = {
 		//console.log(color);
 
 		for(var i in coordinates) {
-			this.drawPoint(coordinates[i])
+			this.drawPoint(coordinates[i], criatura_id)
 		}
 		var shape = new google.maps.Polyline({
 			path: coordinates,
@@ -98,6 +115,9 @@ var Map = {
 	},
 
 	drawAllPoints(grouped){		
+
+		this.isSet = true;
+		
 		for(var i in grouped){
 			this.drawCriatura(grouped[i], i);		
 		}
@@ -122,7 +142,10 @@ var Map = {
 			console.log('Votre navigateur ne prend malheureusement pas en charge la géolocalisation.');
 			return;
 		}
-		var options = {timeout:50000};
+		var options = {
+			timeout: 50000, // 5 seconds
+			maximumAge: 60*6000000 // one hour
+		};
 		
 		navigator.geolocation.getCurrentPosition(function(loc){
 			self.setInitialPosition(loc)
