@@ -1,5 +1,6 @@
-const EventEmitter = require('events')
+import Criaturas from './Criaturas.js'
 
+const EventEmitter = require('events')
 var firebase = require('firebase');
 
 class DB extends EventEmitter {
@@ -18,7 +19,8 @@ class DB extends EventEmitter {
 		
 		var app = firebase.initializeApp(config);
 		
-		this.criaturas_db = firebase.app().database().ref('/controle/criaturas');
+		this.criaturas = new Criaturas(firebase.app().database().ref('/controle/criaturas'))
+		
 		this.pontos_db = firebase.app().database().ref('/controle/pontos');		
 				
 		this.loadInitialData();
@@ -27,29 +29,18 @@ class DB extends EventEmitter {
 
 	loadInitialData(){
 		var self = this;
-		// load inital criaturas
-		this.criaturas_db.once('value', function(snapshot){			
-			//self.data = snapshot.val();	
-			snapshot.forEach(function(childSnapshot) {
-				// key will be "ada" the first time and "alan" the second time				
-				self.data[ childSnapshot.val().id ] = {
-					name: childSnapshot.val().name, 
-					color: childSnapshot.val().color,
-					pontos: []
-				}
-			});
-		});			
+		// load inital criaturas			
 		this.pontos_db.once('value', function(snapshot){			
-			snapshot.forEach(function(childSnapshot) {
+			snapshot.forEach(function(childSnapshot) {				
 				// push pontos para dentro do objeto				
 				// error 
 				if ( self.data[ childSnapshot.val().criatura_id ] == undefined ) {
 				//	console.log('error', self.data, childSnapshot.val().criatura_id)
 				} else {
-					console.log('pushed');
 					self.data[ childSnapshot.val().criatura_id ].pontos.push({
 						latlng: childSnapshot.val().latlng, 
 						timestamp: childSnapshot.val().timestamp,
+						ref: childSnapshot.ref_.path.pieces_.join("/")
 					})				
 				}					
 			});	
@@ -60,27 +51,7 @@ class DB extends EventEmitter {
 	}
 
 	addEvents(){
-		var self = this;
-		// get new criatura
-		this.criaturas_db.limitToLast(1).on('value', function(snapshot) {
-			if(self.initialDataLoaded){
-				let key = Object.keys(snapshot.val())[0];
-
-				// console.log('val', snapshot.val()[key]);
-				// check if criatura is already set ( if is actually new )
-				
-				let criatura_id = snapshot.val()[key]['id'];			
-				// is new !
-				let obj = {
-					name: snapshot.val()[key]['name'], 
-					color: snapshot.val()[key]['color'],
-					pontos: []
-				}						
-				self.data[criatura_id] = obj;
-				// emit event
-				self.emit('newCriatura', obj)
-			}
-		});
+		var self = this;		
 		// get new ponto		
 		this.pontos_db.limitToLast(1).on('value', function(snapshot) {
 			if(self.initialDataLoaded){
@@ -132,48 +103,7 @@ class DB extends EventEmitter {
 
 		return ponto;
 	}
-	storeUser(){
-		let criatura_id = makeId();
-		let randomColor = random_rgba();
-		var criatura = {
-			id: criatura_id,
-			name: 'criatura',
-			color: randomColor
-		}
-		// save to local data
-		this.data[criatura_id] = {
-			name: 'criatura',
-			color: randomColor,
-			pontos:[]
-		}
-		// save criatura to local storage	
-		window.localStorage.setItem('criatura', criatura);
-		// save criatura as global var		
-		window['criatura'] = criatura;
-		// push to DB
-		//this.criaturas_db.push(criatura);
-		return criatura;
-	}
-
-	saveUser(){
-		var criatura = window['criatura'] || window.localStorage['criatura'];
-		if(criatura != undefined && !null){
-			this.criaturas_db.push(criatura);
-		}
-	}
-}
-
-function makeId() {
-	var text = "";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";			
-	for (var i = 0; i < 15; i++)
-		text += possible.charAt(Math.floor(Math.random() * possible.length));			
-	return text;
-}
-
-function random_rgba() {
-    var o = Math.round, r = Math.random, s = 255;
-    return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ')';
+	
 }
 
 export default DB
