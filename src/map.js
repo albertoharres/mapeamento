@@ -1,4 +1,6 @@
 import services from './services.js'
+import Ponto from './Ponto.js';
+
 import _ from 'lodash';
 import $ from 'jquery';
 
@@ -7,19 +9,11 @@ const EventEmitter = require('events');
 class Map extends EventEmitter {
 	constructor(DB){
 		super();
-		// database is equal to DB object
 		this.DB = DB;
-		// have the points been draw ?
-		isSet = false
-		// map variable
 		this.map = null
-		// store current position		
-		this.curPosition = {
-			latlng: {lat:0,lng:0}
-		}
-		// store marker that displays current position
-		this.curPositionMarker = null;	
-		// start to load google maps
+		this.isSet = false
+		this.curPonto = null;
+		this.curLatLng = {lat: 0, lng: 0};
 		this.init();
 	}
 
@@ -27,8 +21,7 @@ class Map extends EventEmitter {
 		// add google maps to html
 		var googlemaps = '<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFacNeg2lg0_TPHTvl3mXr5_tEWtDIbFQ&callback=window.googlemapsLoaded"></script>'
 		$('body').append(googlemaps);
-		// listen to DB events		
-		this.getPosition();	
+		// listen to DB events			
 		this.addEvents();
 	}
 	
@@ -36,7 +29,8 @@ class Map extends EventEmitter {
 		var self = this;		
 		// listen to DB events
 		this.DB.on('loaded',()=>{		
-			// check if points are not set and map is loaded	
+			// check if points are not set and map is loaded
+			this.getPosition();			
 			if( this.map != null && !this.isSet ){
 				this.drawAllPoints(this.DB.data);
 			}
@@ -48,36 +42,55 @@ class Map extends EventEmitter {
 				self.drawCriatura(self.DB.data[criatura_id], criatura_id)			
 			}
 		 })
+
+		 this.DB.criaturas.on('update', function(criatura){
+		//	let pontos = criatura.pontos;
+		 })
 	}
 
 	setMap(){
         this.map = new google.maps.Map(document.getElementById('map'), {
           zoom: 19,
-          center: this.curPosition.latlng
+          center: {lat:0, lng:0}
         });        		
 		// draw points
 		// check if points are not set and DB is loaded
+		
+		
 		if(!this.isSet && this.DB.initialDataLoaded){
-			this.drawAllPoints(this.DB.data);
+		//	this.drawAllPoints(this.DB.data);
 		}
 		
 		// add point on click 'test'
 		// simulate position change
 		var self = this;
 		google.maps.event.addListener(this.map, 'click', function(event) {
-			self.addPoint(event.latLng);
-		 });	
+		//	self.addPoint(event.latLng);
+		});	
 	}
 	/*
 		POSITION 
 	*/
-	setInitialPosition(loc){		
-		// set position
-		this.setPosition(loc);
+	setInitialPosition(latlng){		
+		// set position		
+		
+		console.log(this.DB.criaturas.data.eu)
+		this.curLatLng = latlng
+
+		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
+		this.setPonto(ponto);
 		// start watching for position change	
-		this.watchPosition();
+		//this.watchPosition();
 	}
 
+	setPonto(ponto){
+		this.DB.pontos.save(ponto);
+		this.curPonto = ponto;
+		console.log('inital position', this.curPonto.latlng)
+		this.map.panTo(this.curPonto.getLatLng())
+	}
+
+	/*
 	setPosition(_loc){		
 		var loc = {lat: _loc.coords.latitude, lng: _loc.coords.longitude};
 		// center starting point on screen
@@ -87,7 +100,7 @@ class Map extends EventEmitter {
 		}
 		this.curPosition = this.DB.savePoint(loc);
 		this.drawMyPosition(this.curPosition);
-	}
+	}*/
 
 	getPosition(){
 		var self = this;

@@ -4,8 +4,9 @@ import services from './services.js'
 const EventEmitter = require('events');
 
 class Eu extends Criatura {
-    constructor(criaturas){
+    constructor(criaturas){        
         super(criaturas);
+        this.name = "Meu Nome";
         this.addSelfEvents();     
         if(this.isSetInLocalStorage()){
             this.setFromLocalData(localStorage['criatura_id']);
@@ -59,26 +60,14 @@ class Eu extends Criatura {
 		this.color = services.random_rgba();
         this.name = 'criatura';
         this.emit('created');
-    }
-    
-    getData(){
-        return {
-            name: this.name,
-            color: this.color,
-            isConnected: this.connected,            
-        }
-    }
+    }    
 
     save(data){
         let ref = this.criaturas.ref.push(data).ref;
         let pathArray = ref.path.pieces_;
         this.id = pathArray[pathArray.length-1];
         this.ref = pathArray.join("/");    
-        this.emit('saved');                        
-    }
-    
-    addPosition(ponto){
-        this.pontos.push(ponto);
+        this.emit('saved');
     }    
 }
 
