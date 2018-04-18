@@ -1,3 +1,4 @@
+import mapystyle from './json/map-style.json';
 import services from './services.js'
 import Ponto from './Ponto.js';
 
@@ -15,6 +16,7 @@ class Map extends EventEmitter {
 		this.curPonto = null;
 		this.curLatLng = {lat: 0, lng: 0};
 		this.init();
+		this.color = services.random_rgba();
 	}
 
 	init(){
@@ -30,9 +32,9 @@ class Map extends EventEmitter {
 		// listen to DB events
 		this.DB.on('loaded',()=>{		
 			// check if points are not set and map is loaded
-			this.getPosition();			
+			this.getPosition();
 			if( this.map != null && !this.isSet ){
-				this.drawAllPoints(this.DB.data);
+				this.drawAllPoints(this.DB.criaturas.data);
 			}
 		 })
 
@@ -51,16 +53,14 @@ class Map extends EventEmitter {
 	setMap(){
         this.map = new google.maps.Map(document.getElementById('map'), {
           zoom: 19,
-          center: {lat:0, lng:0}
+		  center: {lat:0, lng:0},
+		  styles: mapystyle
         });        		
 		// draw points
 		// check if points are not set and DB is loaded
-		
-		
-		if(!this.isSet && this.DB.initialDataLoaded){
-		//	this.drawAllPoints(this.DB.data);
+		if(!this.isSet && this.DB.isLoaded){
+			this.drawAllPoints(this.DB.data);
 		}
-		
 		// add point on click 'test'
 		// simulate position change
 		var self = this;
@@ -74,19 +74,29 @@ class Map extends EventEmitter {
 	setInitialPosition(latlng){		
 		// set position		
 		
-		console.log(this.DB.criaturas.data.eu)
+		console.log('eu', this.DB.criaturas.data.eu)
 		this.curLatLng = latlng
 
 		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
 		this.setPonto(ponto);
 		// start watching for position change	
-		//this.watchPosition();
+		this.watchPosition();
 	}
 
+	setPosition(latlng){		
+		// set position		
+		console.log('eu', this.DB.criaturas.data.eu)
+		
+		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
+		this.setPonto(ponto);
+		// start watching for position change	
+	}
+	
 	setPonto(ponto){
 		this.DB.pontos.save(ponto);
 		this.curPonto = ponto;
-		console.log('inital position', this.curPonto.latlng)
+		this.curLatLng = this.curPonto.latlng;
+		console.log('position', this.curPonto.latlng)
 		this.map.panTo(this.curPonto.getLatLng())
 	}
 
@@ -121,7 +131,25 @@ class Map extends EventEmitter {
 	}	
 
 	watchPosition(){
-		var self = this;
+		var self = this;		
+		function watch(){		
+			console.log('watch');
+			navigator.geolocation.getAccurateCurrentPosition(function(loc){
+				console.log(JSON.stringify(loc))
+				$('#debug').html(JSON.stringify(loc.coords.accuracy))
+				if(self.curLatLng.lat == loc.coords.latitude && self.curLatLng.lng == loc.coords.longitude){
+					console.log('same position!')
+				} else {
+					console.log('new position!');
+					self.setPosition(loc)
+				}
+			}, services.error, function(a){console.log('fetching position...')}, {desiredAccuracy: 20, maxWait:15000});
+		}
+		watch(); 
+		setInterval(function(){ 
+			watch(); 
+		}, 15000);
+		/*
 		if(navigator.geolocation){
 		   // timeout at 60000 milliseconds (60 seconds)
 		   var options = {
@@ -131,16 +159,17 @@ class Map extends EventEmitter {
 			};
 			var geoLoc = navigator.geolocation;
 		    geoLoc.watchPosition(function(loc){
-			   if(self.curPosition.latlng.lat == loc.coords.latitude && self.curPosition.latlng.lng == loc.coords.longitude){
-					//console.log('same position!')
+			   if(self.curLatLng.lat == loc.coords.latitude && self.curLatLng.lng == loc.coords.longitude){
+					console.log('same position!')
 			   } else {
 				   console.log('new position!');
 				   self.setPosition(loc)
 			   }
-			}, error, options);
+			}, services.error, options);
 		} else {
 		   alert("Sorry, browser does not support geolocation!");
-		}		
+		}
+		*/
 	}
 
 	addPoint(latlng){		
@@ -152,7 +181,7 @@ class Map extends EventEmitter {
 		DRAW 
 	*/
 	drawPoint(point){
-		var color = point.color;
+		var color = this.color;
 		var marker = new google.maps.Marker({
 			map: this.map,
 			position: point.latlng,
@@ -160,7 +189,7 @@ class Map extends EventEmitter {
 			visible: true,
 			icon: {
 				path: google.maps.SymbolPath.CIRCLE,
-				scale: 1.5,
+				scale: 5,
 				fillColor: point.color,
 				strokeColor: point.color,
 				fillOpacity: 1
@@ -169,7 +198,7 @@ class Map extends EventEmitter {
 	}
 
 	drawMyPosition(point){
-		var color = point.color;
+		var color = this.color;
 		if(this.curPositionMarker == null){
 			this.curPositionMarker = new google.maps.Marker({
 				map: this.map,
@@ -191,10 +220,8 @@ class Map extends EventEmitter {
 	}
 
 	drawShape(coordinates, criatura_id){
-		// console.log('coordinates', coordinates)
 
-		var color = this.DB.data[criatura_id]['color'] || window['criatura']['color'];
-		//console.log(color);
+		var color = this.color;
 
 		for(var i in coordinates) {
 			this.drawPoint(coordinates[i], criatura_id)
@@ -208,22 +235,74 @@ class Map extends EventEmitter {
 		  shape.setMap(this.map);
 	}
 
-	drawAllPoints(grouped){		
-
+	drawAllPoints(data){
+		console.log('draw all points', data)
 		this.isSet = true;
 		
-		for(var i in grouped){
-			this.drawCriatura(grouped[i], i);		
+		for(var i in data){
+			this.drawCriatura(data[i], i);		
 		}
 	}
 
 	drawCriatura(criatura, criatura_id){
+		console.log('draw criatura')
 		var _pontos = [];
 		for(var i in criatura.pontos){
 			_pontos.push(criatura.pontos[i].latlng);
 		}
-		if(_pontos.length > 1 ) this.drawShape(_pontos, criatura_id);
+		if(_pontos.length > 0 ) this.drawShape(_pontos, criatura_id);
 	}
 }
+
+navigator.geolocation.getAccurateCurrentPosition = function (geolocationSuccess, geolocationError, geoprogress, options) {
+    var lastCheckedPosition,
+        locationEventCount = 0,
+        watchID,
+        timerID;
+ 
+    options = options || {};
+
+    var checkLocation = function (position) {
+        lastCheckedPosition = position;
+        locationEventCount = locationEventCount + 1;
+        // We ignore the first event unless it's the only one received because some devices seem to send a cached
+		// location even when maxaimumAge is set to zero
+		
+		
+        if ((position.coords.accuracy <= options.desiredAccuracy) && (locationEventCount > 1)) {
+			console.log('accuracy', position.coords.accuracy, options.desiredAccuracy)
+            clearTimeout(timerID);
+            navigator.geolocation.clearWatch(watchID);
+            foundPosition(position);
+        } else {
+            geoprogress(position);
+        }
+    };
+
+    var stopTrying = function () {
+        navigator.geolocation.clearWatch(watchID);
+        foundPosition(lastCheckedPosition);
+    };
+
+    var onError = function (error) {
+        clearTimeout(timerID);
+        navigator.geolocation.clearWatch(watchID);
+        geolocationError(error);
+    };
+
+    var foundPosition = function (position) {
+        geolocationSuccess(position);
+    };
+
+    if (!options.maxWait)            options.maxWait = 10000; // Default 10 seconds
+    if (!options.desiredAccuracy)    options.desiredAccuracy = 20; // Default 20 meters
+    if (!options.timeout)            options.timeout = options.maxWait; // Default to maxWait
+
+    options.maximumAge = 0; // Force current locations only
+    options.enableHighAccuracy = true; // Force high accuracy (otherwise, why are you using this function?)
+
+    watchID = navigator.geolocation.watchPosition(checkLocation, onError, options);
+    timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
+};
 
 export default Map

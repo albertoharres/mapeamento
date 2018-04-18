@@ -24,7 +24,7 @@ class Pontos extends EventEmitter {
                 var criatura = self.criaturas.getCriatura(data.criatura_id)
                 if(!criatura || data.latlng == undefined) return;                                           
                 var ponto = new Ponto(criatura, data.latlng);
-                criatura.addPonto(id, ponto);					
+                criatura.addPonto(id, ponto);
 			});	
 			self.emit('loaded', null);	
         });		
@@ -69,7 +69,7 @@ class Pontos extends EventEmitter {
         let ref = this.ref.push(obj).ref;
         // set id for point
         ponto.setId(ref);
-        console.log('point saved', ponto.id);
+        //console.log('point saved', ponto.id);
         // save to criatura obj
         ponto.criatura.addPonto(ponto.id, ponto);
     }

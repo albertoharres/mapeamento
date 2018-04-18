@@ -4,7 +4,7 @@ class Ponto extends EventEmitter {
     constructor(criatura, latlng){
         super();
         this.criatura = criatura;
-        console.log('latlng', latlng)
+        //console.log('latlng', latlng)
         this.latlng = (latlng.lat) ? latlng : {lat: latlng.coords.latitude, lng: latlng.coords.longitude};
         this.criatura_id = criatura.id;
         this.timestamp = new Date().getTime();

@@ -9,7 +9,8 @@
     "start": "webpack-dev-server --https --mode development --open --host localhost",
     "dev": "webpack-dev-server --mode development --https --host 0.0.0.0",
     "deploy": "firebase deploy",
-    "init": "firebase init"
+    "init": "firebase init",
+    "login": "firebase login --reauth"
   },
   "repository": {
     "type": "git",

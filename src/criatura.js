@@ -6,9 +6,10 @@ const EventEmitter = require('events');
 class Criatura extends EventEmitter {
     constructor(criaturas){
         super();
+        this.name = 'name'
         this.criaturas = criaturas;
         this.isConnected = true;
-        this.pontos = [];
+        this.pontos = {};
     }
 
     // when local creature is set from DB
@@ -25,12 +26,12 @@ class Criatura extends EventEmitter {
         return {
             name: this.name,
             color: this.color,
-            isConnected: this.isConnected,            
+            isConnected: this.isConnected,
         }
     }
 
     addPonto(id, ponto){
-        console.log('point added');
+       // console.log('point added');
         this.pontos[id] = ponto;
         this.criaturas.emit('update', this);
     }

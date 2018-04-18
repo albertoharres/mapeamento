@@ -18,8 +18,8 @@ class DB extends EventEmitter {
 		
 		var app = firebase.initializeApp(config);
 		// children objs
-		this.criaturas = new Criaturas(firebase.app().database().ref('/controle/criaturas'));	
-		this.pontos = new Pontos(firebase.app().database().ref('/controle/pontos'));			
+		this.criaturas = new Criaturas(firebase.app().database().ref('/controle_carioca_18_04/criaturas'));	
+		this.pontos = new Pontos(firebase.app().database().ref('/controle_carioca_18_04/pontos'));
 		// global db events
 		this.addEvents();
 	}
