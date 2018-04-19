@@ -9,6 +9,7 @@ class Criatura extends EventEmitter {
         this.name = 'name'
         this.criaturas = criaturas;
         this.isConnected = true;
+        this.color = services.random_rgba();
         this.pontos = {};
     }
 

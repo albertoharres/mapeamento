@@ -1,6 +1,7 @@
-import mapystyle from './json/map-style.json';
+import mapystyle from './json/map-style.json'
+import geolocation from './geolocation.js'
 import services from './services.js'
-import Ponto from './Ponto.js';
+import Ponto from './Ponto.js'
 
 import _ from 'lodash';
 import $ from 'jquery';
@@ -54,7 +55,9 @@ class Map extends EventEmitter {
         this.map = new google.maps.Map(document.getElementById('map'), {
           zoom: 19,
 		  center: {lat:0, lng:0},
-		  styles: mapystyle
+		  styles: mapystyle,
+		  streetViewControl: false,
+		  fullscreenControl: false
         });        		
 		// draw points
 		// check if points are not set and DB is loaded
@@ -112,66 +115,6 @@ class Map extends EventEmitter {
 		this.drawMyPosition(this.curPosition);
 	}*/
 
-	getPosition(){
-		var self = this;
-		console.log('get position');
-		if(!navigator.geolocation) { 
-			console.log('Votre navigateur ne prend malheureusement pas en charge la géolocalisation.');
-			return;
-		}
-		var options = {
-			timeout: 600000, // 50 seconds
-			maximumAge: 600000, // one hour
-			enableHighAccuracy: true
-		};
-		
-		navigator.geolocation.getCurrentPosition(function(loc){
-			self.setInitialPosition(loc)
-		}, services.error, options);		
-	}	
-
-	watchPosition(){
-		var self = this;		
-		function watch(){		
-			console.log('watch');
-			navigator.geolocation.getAccurateCurrentPosition(function(loc){
-				console.log(JSON.stringify(loc))
-				$('#debug').html(JSON.stringify(loc.coords.accuracy))
-				if(self.curLatLng.lat == loc.coords.latitude && self.curLatLng.lng == loc.coords.longitude){
-					console.log('same position!')
-				} else {
-					console.log('new position!');
-					self.setPosition(loc)
-				}
-			}, services.error, function(a){console.log('fetching position...')}, {desiredAccuracy: 20, maxWait:15000});
-		}
-		watch(); 
-		setInterval(function(){ 
-			watch(); 
-		}, 15000);
-		/*
-		if(navigator.geolocation){
-		   // timeout at 60000 milliseconds (60 seconds)
-		   var options = {
-			   timeout:60000,
-			   maximumAge: 60000,
-			   enableHighAccuracy: true
-			};
-			var geoLoc = navigator.geolocation;
-		    geoLoc.watchPosition(function(loc){
-			   if(self.curLatLng.lat == loc.coords.latitude && self.curLatLng.lng == loc.coords.longitude){
-					console.log('same position!')
-			   } else {
-				   console.log('new position!');
-				   self.setPosition(loc)
-			   }
-			}, services.error, options);
-		} else {
-		   alert("Sorry, browser does not support geolocation!");
-		}
-		*/
-	}
-
 	addPoint(latlng){		
 		var loc = { 'lat': latlng.lat(), 'lng': latlng.lng() };
 		var point = this.DB.savePoint(loc);
@@ -219,12 +162,12 @@ class Map extends EventEmitter {
 		}
 	}
 
-	drawShape(coordinates, criatura_id){
+	drawShape(coordinates, criatura){
 
-		var color = this.color;
+		var color = criatura.color;
 
 		for(var i in coordinates) {
-			this.drawPoint(coordinates[i], criatura_id)
+			this.drawPoint(coordinates[i], criatura.id)
 		}
 		var shape = new google.maps.Polyline({
 			path: coordinates,
@@ -250,59 +193,8 @@ class Map extends EventEmitter {
 		for(var i in criatura.pontos){
 			_pontos.push(criatura.pontos[i].latlng);
 		}
-		if(_pontos.length > 0 ) this.drawShape(_pontos, criatura_id);
+		if(_pontos.length > 0 ) this.drawShape(_pontos, criatura);
 	}
 }
-
-navigator.geolocation.getAccurateCurrentPosition = function (geolocationSuccess, geolocationError, geoprogress, options) {
-    var lastCheckedPosition,
-        locationEventCount = 0,
-        watchID,
-        timerID;
- 
-    options = options || {};
-
-    var checkLocation = function (position) {
-        lastCheckedPosition = position;
-        locationEventCount = locationEventCount + 1;
-        // We ignore the first event unless it's the only one received because some devices seem to send a cached
-		// location even when maxaimumAge is set to zero
-		
-		
-        if ((position.coords.accuracy <= options.desiredAccuracy) && (locationEventCount > 1)) {
-			console.log('accuracy', position.coords.accuracy, options.desiredAccuracy)
-            clearTimeout(timerID);
-            navigator.geolocation.clearWatch(watchID);
-            foundPosition(position);
-        } else {
-            geoprogress(position);
-        }
-    };
-
-    var stopTrying = function () {
-        navigator.geolocation.clearWatch(watchID);
-        foundPosition(lastCheckedPosition);
-    };
-
-    var onError = function (error) {
-        clearTimeout(timerID);
-        navigator.geolocation.clearWatch(watchID);
-        geolocationError(error);
-    };
-
-    var foundPosition = function (position) {
-        geolocationSuccess(position);
-    };
-
-    if (!options.maxWait)            options.maxWait = 10000; // Default 10 seconds
-    if (!options.desiredAccuracy)    options.desiredAccuracy = 20; // Default 20 meters
-    if (!options.timeout)            options.timeout = options.maxWait; // Default to maxWait
-
-    options.maximumAge = 0; // Force current locations only
-    options.enableHighAccuracy = true; // Force high accuracy (otherwise, why are you using this function?)
-
-    watchID = navigator.geolocation.watchPosition(checkLocation, onError, options);
-    timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
-};
 
 export default Map
