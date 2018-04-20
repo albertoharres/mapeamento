@@ -5,6 +5,7 @@ const EventEmitter = require('events');
 
 class Geolocation extends EventEmitter {
     constructor(){
+        super();
         this.curLoc = {}; 
     }
     get(){
@@ -27,11 +28,13 @@ class Geolocation extends EventEmitter {
 	watch(interval = 15000){
 		var self = this;		
 		function watch(){		
-            console.log('watch');
 			navigator.geolocation.getAccurateCurrentPosition(function(loc){
                 if(loc == undefined) return
 				console.log(JSON.stringify(loc))
-				$('#debug').html(JSON.stringify(loc.coords.accuracy))
+                $('#debug').html(JSON.stringify(loc.coords.accuracy))
+                
+                // if(loc.coords.accuracy < 25) return; 
+
 				if(self.curLatLng.lat == loc.coords.latitude && self.curLatLng.lng == loc.coords.longitude){
                     console.log('same position!')
 				} else {

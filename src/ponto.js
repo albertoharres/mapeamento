@@ -8,6 +8,7 @@ class Ponto extends EventEmitter {
         this.latlng = (latlng.lat) ? latlng : {lat: latlng.coords.latitude, lng: latlng.coords.longitude};
         this.criatura_id = criatura.id;
         this.timestamp = new Date().getTime();
+        this.setMarker();
     }
 
     getLatLng(){
@@ -20,8 +21,24 @@ class Ponto extends EventEmitter {
         this.id = ponto_id;        
     }
 
-    draw(){
+    setMarker(){
+        this.marker = new google.maps.Marker({
+			map: null,
+			position: this.latlng,
+			title: "Hello World!",
+			visible: true,
+			icon: {
+				path: google.maps.SymbolPath.CIRCLE,
+				scale: 5,
+				fillColor: this.color,
+				strokeColor: this.color,
+				fillOpacity: 1
+			},
+		});
+    }
 
+    draw(map) {
+        this.marker.setMap(map);
     }
 }
 

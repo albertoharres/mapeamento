@@ -1,10 +1,13 @@
 import DB from './DB.js'
-import Map from './map.js'
+import Mapeamento from './mapeamento.js'
+
+var googlemap;
 
 var App = {
 	init(){
         this.DB = new DB();
-        this.map = new Map(this.DB);               
+        this.mapeamento = new Mapeamento(this.DB);
+        googlemap = this.map.map;
     },
     // separate function for the googlemaps onLoad callback from 'script' tag    
     initMap(){
