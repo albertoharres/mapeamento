@@ -3,11 +3,10 @@ import $ from 'jquery';
 
 const EventEmitter = require('events');
 
-class geolocation extends EventEmitter {
+class Geolocation extends EventEmitter {
     constructor(){
         this.curLoc = {}; 
     }
-
     get(){
 		var self = this;
 		console.log('get position');
@@ -24,8 +23,7 @@ class geolocation extends EventEmitter {
 		navigator.geolocation.getCurrentPosition(function(loc){
 			self.setInitialPosition(loc)
 		}, services.error, options);		
-	}	
-
+	}
 	watch(interval = 15000){
 		var self = this;		
 		function watch(){		
@@ -38,7 +36,7 @@ class geolocation extends EventEmitter {
                     console.log('same position!')
 				} else {
                     console.log('new position!');
-					self.setPosition(loc)
+					self.onFound(loc);
 				}
 			}, services.error, function(a){console.log('fetching position...')}, {desiredAccuracy: 20, maxWait:interval});
         }        
