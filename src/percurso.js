@@ -5,7 +5,7 @@ class Percurso extends EventEmitter {
         super();
         this.criatura = criatura;
         this.pontos = pontos;
-        var path = this.getPath();
+        var path = this.getPath();        
         this.polyline = new google.maps.Polyline({
             path: path,
             strokeColor: this.criatura.color,
@@ -16,10 +16,11 @@ class Percurso extends EventEmitter {
 
     getPath(){
         let coord = [];
+        console.log(this.pontos);
         for(let p in this.pontos){
             coord.push(this.pontos[p].latlng);
         }
-        return 
+        return coord
     }
 
     addPonto(ponto){

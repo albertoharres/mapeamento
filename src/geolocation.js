@@ -22,7 +22,7 @@ class Geolocation extends EventEmitter {
 		};
 		
 		navigator.geolocation.getCurrentPosition(function(loc){
-			self.setInitialPosition(loc)
+			self.onFound(loc)
 		}, services.error, options);		
 	}
 	watch(interval = 15000){
@@ -106,4 +106,4 @@ navigator.geolocation.getAccurateCurrentPosition = function (geolocationSuccess,
 };
 
 
-export default geolocation
+export default Geolocation

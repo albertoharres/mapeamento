@@ -17,6 +17,14 @@ var services = {
 
     getAccurateCurrentPosition() {
         getAccurateCurrentPosition
+    },
+
+    isArray(a) {
+        return (!!a) && (a.constructor === Array);
+    },
+
+    isObject(a) {
+        return (!!a) && (a.constructor === Object);
     }
 }
 

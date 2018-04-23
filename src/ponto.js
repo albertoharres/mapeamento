@@ -1,13 +1,13 @@
 const EventEmitter = require('events');
 
 class Ponto extends EventEmitter {
-    constructor(criatura, latlng){
+    constructor(criatura, latlng, timestamp = null){
         super();
-        this.criatura = criatura;
-        //console.log('latlng', latlng)
+        this.criatura = criatura;   
+        this.color = this.criatura.color;     
         this.latlng = (latlng.lat) ? latlng : {lat: latlng.coords.latitude, lng: latlng.coords.longitude};
         this.criatura_id = criatura.id;
-        this.timestamp = new Date().getTime();
+        this.timestamp = timestamp || new Date().getTime();
         this.setMarker();
     }
 
@@ -29,12 +29,12 @@ class Ponto extends EventEmitter {
 			visible: true,
 			icon: {
 				path: google.maps.SymbolPath.CIRCLE,
-				scale: 5,
+				scale: 2,
 				fillColor: this.color,
 				strokeColor: this.color,
 				fillOpacity: 1
 			},
-		});
+        });        
     }
 
     draw(map) {

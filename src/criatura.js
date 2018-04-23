@@ -31,6 +31,11 @@ class Criatura extends EventEmitter {
         }
     }
 
+    setPonto(id, ponto){
+        // console.log('point added');
+        this.pontos[id] = ponto;
+     }
+
     addPonto(id, ponto){
        // console.log('point added');
         this.pontos[id] = ponto;

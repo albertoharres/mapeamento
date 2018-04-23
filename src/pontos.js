@@ -13,7 +13,7 @@ class Pontos extends EventEmitter {
         this.load();
         this.addEvents();
     }
-    
+    // load initial data
     load(){
         var self = this; 
         this.ref.once('value', function(snapshot){			
@@ -21,10 +21,14 @@ class Pontos extends EventEmitter {
                 // first check if creatura with id exists or not
                 let data = childSnapshot.val();      
                 let id = childSnapshot.key;
+                let timestamp = data.timestamp || 0;
+
+                if(data.latlng == undefined || data.latlng == null) return                
+                let latlng = data.latlng;
                 var criatura = self.criaturas.getCriatura(data.criatura_id)
                 if(!criatura || data.latlng == undefined) return;                                           
-                var ponto = new Ponto(criatura, data.latlng);
-                criatura.addPonto(id, ponto);
+                var ponto = new Ponto(criatura, latlng, timestamp);
+                criatura.pontos[id] = ponto;
 			});	
 			self.emit('loaded', null);	
         });		
@@ -59,7 +63,7 @@ class Pontos extends EventEmitter {
 		});
     }
 
-    save(ponto){        
+    save(ponto){
         let obj = {
             latlng: ponto.latlng,
             timestamp: ponto.timestamp,

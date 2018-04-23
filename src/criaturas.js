@@ -49,7 +49,8 @@ class Criaturas extends EventEmitter {
 			if(self.isLoaded){          
                // console.log('new critura!');
                 var criatura = new Criatura(self);
-				let id = Object.keys(snapshot.val())[0];                               
+                let id = Object.keys(snapshot.val())[0];     
+                console.log('criatura', snapshot.val(), id)                          
                 self.data[id] = criatura.set(snapshot.val()[id]);
 				self.emit('new', obj)
 			}
@@ -57,8 +58,6 @@ class Criaturas extends EventEmitter {
         
         this.on('loaded', ()=>{
             this.isLoaded = true;
-            // create own user after all users are loaded, 
-            // to make sure it is not created without need 
             this.data['eu'] = this.setSelf();
         })
 

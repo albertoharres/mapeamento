@@ -1,7 +1,8 @@
 import mapystyle from './json/map-style.json'
 import services from './services.js'
 import Geolocation from './geolocation.js'
-import Ponto from './Ponto.js'
+import Ponto from './ponto.js'
+import Percurso from './percurso.js'
 
 import _ from 'lodash';
 import $ from 'jquery';
@@ -18,8 +19,6 @@ class Mapeamento extends EventEmitter {
 		this.geolocation = new Geolocation();
 		// objects
 		this.map = null
-		// init!
-		this.init();
 		// add google maps to html
 		var googlemaps = '<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFacNeg2lg0_TPHTvl3mXr5_tEWtDIbFQ&callback=window.googlemapsLoaded"></script>'
 		$('body').append(googlemaps);
@@ -34,83 +33,75 @@ class Mapeamento extends EventEmitter {
 			this.geolocation.get();
 			// check if points are not set and map is loaded
 			if( this.map != null && !this.isSet ){
-				this.loadCriaturas(this.DB.criaturas.data);
+				for( let i in this.DB.criaturas.data ){
+					this.drawPercursos(this.DB.criaturas.data[i]);
+				}
+				// draw existing points
 			}
 		 })
-
 		 // on new point from DB
 		 this.DB.on('newPonto', function(criatura_id){
 			console.log('novo ponto');
 			if( self.map != null){							
-				self.drawCriatura(self.DB.data[criatura_id], criatura_id);
+				console.log('novo ponto');
 			}
 		 })
 
+		 this.DB.criaturas.on('update', function(criatura){
+			//console.log('criatura update', criatura)
+			// draw new points
+		 });
+
 		 // on latlng point found!!!
 		 this.geolocation.on('found', function(loc){
-			self.setPosition(loc);
+			console.log('point found', loc);
+			self.addPosition(loc)
+			// self.setPosition(loc);
 		 })
-
-		//this.DB.criaturas.on('update', function(criatura){
-			// let pontos = criatura.pontos;
-		//})
 	}
 
 	setMap(){
-        this.map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 19,
-		  center: {lat:0, lng:0},
-		  styles: mapystyle,
-		  streetViewControl: false,
-		  fullscreenControl: false
-		});
-		
+		var options = {
+			zoom: 19,
+			center: {lat:-22.970722, lng:-43.182365},
+			styles: mapystyle,
+			streetViewControl: false,
+			fullscreenControl: false
+		}
+        this.map = new google.maps.Map(document.getElementById('map'), options);
 		window['map'] = this.map;
-		// draw points
-		// check if points are not set and DB is loaded
-		if(!this.isSet && this.DB.isLoaded){
-			this.drawAllPoints(this.DB.data);
-		}
 	}
-	/*
-		POSITION 
-	*/
-	setInitialPosition(latlng){		
-		// set position		
-		console.log('eu', this.DB.criaturas.data.eu)
-		this.curLatLng = latlng
 
+	addPosition(latlng){
+		// set position
+		console.log('eu', this.DB.criaturas.data.eu)
 		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
-		this.setPonto(ponto);
-		// start watching for position change	
-		this.watchPosition();
+		this.map.panTo(ponto.getLatLng());
+		//this.DB.pontos.save(ponto)
+
 	}
 
-	setPosition(latlng){		
-		// set position		
-		console.log('eu', this.DB.criaturas.data.eu)
+	drawPercursos(criatura){
+		if( Object.keys(criatura.pontos).length < 2 ) return
+
+		var minute = 1000 * 60;
+		var hour = minute * 60;
+		var day = hour * 24;
 		
-		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
-		this.setPonto(ponto);
-		// start watching for position change	
-	}
-	
-	setPonto(ponto){
-		this.DB.pontos.save(ponto);
-		this.curPonto = ponto;
-		this.curLatLng = this.curPonto.latlng;
-		console.log('position', this.curPonto.latlng)
-		this.map.panTo(this.curPonto.getLatLng())
-	}
-
-
-	drawCriatura(criatura, criatura_id){
-		var _pontos = [];
-		for(var i in criatura.pontos){
-			_pontos.push(criatura.pontos[i].latlng);
+		var sorted = []
+		for(let i in criatura.pontos){
+			var date = Math.round(criatura.pontos[i].timestamp / day )
+			if(sorted[date] == undefined) sorted[date] = []			
+			sorted[date].push(criatura.pontos[i])
 		}
-		if(_pontos.length > 0 ) this.drawShape(_pontos, criatura);
+
+		for(let i in sorted){
+			let pontos = sorted[i];
+			var percurso = new Percurso(criatura, pontos);
+			percurso.draw(this.map)
+		}
+
 	}
 }
 
-export default Map
+export default Mapeamento
