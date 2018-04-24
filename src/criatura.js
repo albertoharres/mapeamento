@@ -1,5 +1,6 @@
-import Pontos from './Pontos.js'
 import services from './services.js'
+import Percurso from './percurso.js'
+import Pontos from './pontos.js'
 
 const EventEmitter = require('events');
 
@@ -11,17 +12,49 @@ class Criatura extends EventEmitter {
         this.isConnected = true;
         this.color = services.random_rgba();
         this.pontos = {};
+        this.percursos = {};
+    }
+
+    addEvent(){
+        var self = this;
+        this.on('update', function(ponto_id){
+            var ponto = self.pontos[ponto_id]
+            let date_key = services.getDay(ponto_id)
+            console.log('ponto', ponto);
+            self.percursos[date_key].addPonto(ponto)
+        })
     }
 
     // when local creature is set from DB
-    set(snapshot){
-        //console.log('snapshot', snapshot)
-        this.name = snapshot.val().name;
-        this.color = snapshot.val().color;
-        this.id = snapshot.ref.key;
+    set(snapshot, id){                
+        //console.log('snapshot', snapshot)        
+        console.log('criatura', snapshot.val(), id)              
+        let data = snapshot.val()
+        this.name = data.name;
+        this.color = data.color;
+        this.id = id;
         this.ref = snapshot.getRef();
         return this;
     }
+
+    getSorted(){
+        var sorted = {};
+        for( let  i in this.pontos ){
+            let date_key = services.getDay(this.pontos[i].timestamp)
+            sorted[date_key] = sorted[date_key] == undefined ? {} : sorted[date_key]            
+            sorted[date_key][i] = this.pontos[i] 
+        }
+        return sorted; 
+    }
+
+    setPercursos(){
+        var sorted = this.getSorted();
+        for(var i in sorted){
+            var percurso = new Percurso(this, sorted[i])
+            this.percursos[i] = percurso; 
+        }
+    }
+
     // returns data obj
     getData(){
         return {
@@ -31,16 +64,11 @@ class Criatura extends EventEmitter {
         }
     }
 
-    setPonto(id, ponto){
-        // console.log('point added');
-        this.pontos[id] = ponto;
-     }
-
-    addPonto(id, ponto){
-       // console.log('point added');
-        this.pontos[id] = ponto;
-        this.criaturas.emit('update', this);
-    }
+    draw(map){
+        for(var i in this.percursos){
+            this.percursos[i].draw(map)
+        }
+    } 
 }
 
 export default Criatura

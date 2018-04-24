@@ -36,7 +36,6 @@ class Mapeamento extends EventEmitter {
 				for( let i in this.DB.criaturas.data ){
 					this.drawPercursos(this.DB.criaturas.data[i]);
 				}
-				// draw existing points
 			}
 		 })
 		 // on new point from DB
@@ -82,25 +81,8 @@ class Mapeamento extends EventEmitter {
 	}
 
 	drawPercursos(criatura){
-		if( Object.keys(criatura.pontos).length < 2 ) return
-
-		var minute = 1000 * 60;
-		var hour = minute * 60;
-		var day = hour * 24;
-		
-		var sorted = []
-		for(let i in criatura.pontos){
-			var date = Math.round(criatura.pontos[i].timestamp / day )
-			if(sorted[date] == undefined) sorted[date] = []			
-			sorted[date].push(criatura.pontos[i])
-		}
-
-		for(let i in sorted){
-			let pontos = sorted[i];
-			var percurso = new Percurso(criatura, pontos);
-			percurso.draw(this.map)
-		}
-
+		criatura.setPercursos();
+		criatura.draw(this.map);
 	}
 }
 

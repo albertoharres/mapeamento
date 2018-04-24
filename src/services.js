@@ -25,6 +25,13 @@ var services = {
 
     isObject(a) {
         return (!!a) && (a.constructor === Object);
+    },
+
+    getDay(timestamp){
+        var minute = 1000 * 60;
+		var hour = minute * 60;
+        var day = hour * 24;
+        return Math.round(timestamp / day)
     }
 }
 

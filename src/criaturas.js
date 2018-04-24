@@ -26,10 +26,10 @@ class Criaturas extends EventEmitter {
             // iterar cada criatura
 			snapshot.forEach(function(childSnapshot) {
                 let pathArray = childSnapshot.ref_.path.pieces_;
-                let id = pathArray[pathArray.length-1];
+                let id = pathArray[pathArray.length-1];``
                 var criatura = new Criatura(self);
                 // put criatura in obj using id as key
-                self.data[id] = criatura.set(childSnapshot);
+                self.data[id] = criatura.set(childSnapshot, id);
             });
             self.emit('loaded', null);
         });
@@ -46,19 +46,22 @@ class Criaturas extends EventEmitter {
     addEvents(){
         var self = this;
         this.ref.limitToLast(1).on('value', function(snapshot) {
-			if(self.isLoaded){          
-               // console.log('new critura!');
-                var criatura = new Criatura(self);
+			if(self.isLoaded){
+                //console.log('new critura!');
+                var criatura = new Criatura(self);                           
                 let id = Object.keys(snapshot.val())[0];     
-                console.log('criatura', snapshot.val(), id)                          
-                self.data[id] = criatura.set(snapshot.val()[id]);
-				self.emit('new', obj)
+                self.data[id] = criatura.set(snapshot, id);
+				//self.emit('new', self.data[id])
 			}
 		});
         
         this.on('loaded', ()=>{
             this.isLoaded = true;
             this.data['eu'] = this.setSelf();
+            // set percursos for each criatura
+            for(let i in this.data){
+                this.data[i].setPercursos();
+            }
         })
 
         this.on('newPonto', function(ponto){

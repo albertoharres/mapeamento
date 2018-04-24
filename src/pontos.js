@@ -1,4 +1,5 @@
 import Ponto from './Ponto.js'
+import services from './services.js'
 
 const EventEmitter = require('events');
 
@@ -26,8 +27,11 @@ class Pontos extends EventEmitter {
                 if(data.latlng == undefined || data.latlng == null) return                
                 let latlng = data.latlng;
                 var criatura = self.criaturas.getCriatura(data.criatura_id)
-                if(!criatura || data.latlng == undefined) return;                                           
-                var ponto = new Ponto(criatura, latlng, timestamp);
+                if(!criatura || data.latlng == undefined) return;  
+                
+                let day = services.getDay(timestamp)
+
+                var ponto = new Ponto(criatura, latlng);
                 criatura.pontos[id] = ponto;
 			});	
 			self.emit('loaded', null);	
@@ -52,9 +56,10 @@ class Pontos extends EventEmitter {
                     let criatura = self.criaturas.getCriatura(criatura_id);
                     if(!criatura || data.latlng == undefined) return;                                              
                     // create ponto              
-                    var ponto = new Ponto(criatura,data.latlng);                
+                    var ponto = new Ponto(criatura,data.latlng);
                     // add point to criatura
-                    criatura.addPonto(id, ponto);
+                    criatura.pontos[id] = ponto;
+                    criatura.emit('update', ponto);
 				} else {
 					console.log('criatura from point doesnt exist')
 					return; 
