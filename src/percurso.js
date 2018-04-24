@@ -16,7 +16,6 @@ class Percurso extends EventEmitter {
 
     getPath(){
         let coord = [];
-        console.log(this.pontos);
         for(let p in this.pontos){
             coord.push(this.pontos[p].latlng);
         }

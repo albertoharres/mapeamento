@@ -76,7 +76,7 @@ class Mapeamento extends EventEmitter {
 		console.log('eu', this.DB.criaturas.data.eu)
 		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
 		this.map.panTo(ponto.getLatLng());
-		//this.DB.pontos.save(ponto)
+		this.DB.pontos.save(ponto)
 
 	}
 

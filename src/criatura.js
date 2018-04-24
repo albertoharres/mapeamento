@@ -13,22 +13,33 @@ class Criatura extends EventEmitter {
         this.color = services.random_rgba();
         this.pontos = {};
         this.percursos = {};
+        this.addEvents()
     }
 
-    addEvent(){
+    addEvents(){
         var self = this;
         this.on('update', function(ponto_id){
             var ponto = self.pontos[ponto_id]
             let date_key = services.getDay(ponto_id)
-            console.log('ponto', ponto);
-            self.percursos[date_key].addPonto(ponto)
+            console.log('new ponto', ponto)
+            
+            if(self.percursos[date_key] == undefined){
+                // if percurso is new
+               // self.percursos[date_key][ponto_id]
+               // .addPonto(ponto)
+            } else {
+                // if is current percurso
+                self.percursos[date_key].addPonto(ponto)
+            }
         })
     }
 
+    
+
     // when local creature is set from DB
-    set(snapshot, id){                
-        //console.log('snapshot', snapshot)        
-        console.log('criatura', snapshot.val(), id)              
+    set(snapshot, id){
+        //console.log('snapshot', snapshot)
+        //console.log('criatura', snapshot.val(), id)
         let data = snapshot.val()
         this.name = data.name;
         this.color = data.color;
