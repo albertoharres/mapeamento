@@ -28,7 +28,7 @@ class DB extends EventEmitter {
 		this.criaturas.on('loaded', ()=>{
 			console.log('criaturas loaded');
 			// load pontos
-			this.pontos.init(this.criaturas);			
+			this.pontos.init(this.criaturas);
 		})
 
 		this.pontos.on('loaded', ()=>{

@@ -20,21 +20,21 @@ class Criatura extends EventEmitter {
         var self = this;
         this.on('update', function(ponto_id){
             var ponto = self.pontos[ponto_id]
-            let date_key = services.getDay(ponto_id)
-            console.log('new ponto', ponto)
-            
+            let date_key = services.getDay(ponto.timestamp)
+            console.log('new ponto', ponto, ponto_id, self.pontos)
             if(self.percursos[date_key] == undefined){
+                console.log('date key undefined!')
                 // if percurso is new
-               // self.percursos[date_key][ponto_id]
-               // .addPonto(ponto)
+                var percurso = new Percurso(self, {ponto_id: ponto})
+                self.percursos[date_key] = percurso;
+                self.percursos[date_key].addPonto(ponto)
+                self.criaturas.emit('newPercurso', percurso);
             } else {
                 // if is current percurso
                 self.percursos[date_key].addPonto(ponto)
             }
         })
     }
-
-    
 
     // when local creature is set from DB
     set(snapshot, id){
@@ -52,8 +52,8 @@ class Criatura extends EventEmitter {
         var sorted = {};
         for( let  i in this.pontos ){
             let date_key = services.getDay(this.pontos[i].timestamp)
-            sorted[date_key] = sorted[date_key] == undefined ? {} : sorted[date_key]            
-            sorted[date_key][i] = this.pontos[i] 
+            sorted[date_key] = sorted[date_key] == undefined ? {} : sorted[date_key]
+            sorted[date_key][i] = this.pontos[i]
         }
         return sorted; 
     }

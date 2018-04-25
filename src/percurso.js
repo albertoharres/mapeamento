@@ -5,12 +5,12 @@ class Percurso extends EventEmitter {
         super();
         this.criatura = criatura;
         this.pontos = pontos;
-        var path = this.getPath();        
+        this.path = this.getPath();        
         this.polyline = new google.maps.Polyline({
-            path: path,
+            path: this.path,
             strokeColor: this.criatura.color,
-            strokeOpacity: 1.0,
-            strokeWeight: 2
+            strokeOpacity: 0.9,
+            strokeWeight: 2.2
         });
     }
 
@@ -24,13 +24,13 @@ class Percurso extends EventEmitter {
 
     addPonto(ponto){
         this.pontos[ponto.id] = ponto;
-        this.coordinates.push(ponto.latlng);  
-        updatePolyline();     
+        this.path.push(ponto.latlng);  
+        this.updatePolyline();     
     }
 
     updatePolyline(){
-        var path = this.polyline.getPath();
-        this.polyline.setPath(this.coordinates);
+        this.polyline.setPath(this.path);
+        console.log('polyline updated!')
     }
 
     draw(map){

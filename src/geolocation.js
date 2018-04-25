@@ -6,13 +6,16 @@ const EventEmitter = require('events');
 class Geolocation extends EventEmitter {
     constructor(){
         super();
-        this.curLoc = {}; 
+        this.curLoc = {'lat': 0, 'lng': 0}; 
+        this.isMobile = services.checkMobile();
+        // debug
+        this.debug = true;
     }
     get(){
 		var self = this;
-		console.log('get position');
+		this.print('get position');
 		if(!navigator.geolocation) { 
-			console.log('Votre navigateur ne prend malheureusement pas en charge la géolocalisation.');
+			this.print('Votre navigateur ne prend malheureusement pas en charge la géolocalisation.');
 			return;
 		}
 		var options = {
@@ -26,19 +29,20 @@ class Geolocation extends EventEmitter {
 		}, services.error, options);		
 	}
 	watch(interval = 15000){
-		var self = this;		
+		var self = this;
 		function watch(){		
 			navigator.geolocation.getAccurateCurrentPosition(function(loc){
                 if(loc == undefined) return
-				console.log(JSON.stringify(loc))
+			
                 $('#debug').html(JSON.stringify(loc.coords.accuracy))
-                
-                // if(loc.coords.accuracy < 25) return; 
-
-				if(self.curLatLng.lat == loc.coords.latitude && self.curLatLng.lng == loc.coords.longitude){
-                    console.log('same position!')
+                if(loc.coords.accuracy > 21 && self.isMobile) { 
+                    self.print('low accuracy')   
+                   // return; 
+                }
+				if(self.curLoc.lat == loc.coords.latitude && self.curLoc.lng == loc.coords.longitude){
+                    self.print('same position!')
 				} else {
-                    console.log('new position!');
+                    self.print('new position!');
 					self.onFound(loc);
 				}
 			}, services.error, function(a){console.log('fetching position...')}, {desiredAccuracy: 20, maxWait:interval});
@@ -50,7 +54,13 @@ class Geolocation extends EventEmitter {
     }
     
     onFound(loc){
+        this.curLoc = {'lat': loc.coords.latitude, 'lng':  loc.coords.longitude};
         this.emit('found', loc);
+    }
+
+    print(str){
+        if(!this.debug) return 
+        console.log('Geolocation:', str)
     }
 }
 
@@ -70,7 +80,6 @@ navigator.geolocation.getAccurateCurrentPosition = function (geolocationSuccess,
 		
 		
         if ((position.coords.accuracy <= options.desiredAccuracy) && (locationEventCount > 1)) {
-			console.log('accuracy', position.coords.accuracy, options.desiredAccuracy)
             clearTimeout(timerID);
             navigator.geolocation.clearWatch(watchID);
             foundPosition(position);

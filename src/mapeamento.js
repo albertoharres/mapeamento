@@ -14,6 +14,7 @@ class Mapeamento extends EventEmitter {
 		super();
 		// state 
 		this.isSet = false
+		this.hasFoundInitialPosition = false; 
 		// classes
 		this.DB = DB;
 		this.geolocation = new Geolocation();
@@ -30,14 +31,15 @@ class Mapeamento extends EventEmitter {
 		var self = this;						
 		// on DB ready
 		this.DB.on('loaded',()=>{
-			this.geolocation.get();
+			this.geolocation.watch();
 			// check if points are not set and map is loaded
 			if( this.map != null && !this.isSet ){
 				for( let i in this.DB.criaturas.data ){
-					this.drawPercursos(this.DB.criaturas.data[i]);
+					this.drawCriatura(this.DB.criaturas.data[i]);
 				}
 			}
 		 })
+		/* 
 		 // on new point from DB
 		 this.DB.on('newPonto', function(criatura_id){
 			console.log('novo ponto');
@@ -45,10 +47,10 @@ class Mapeamento extends EventEmitter {
 				console.log('novo ponto');
 			}
 		 })
-
-		 this.DB.criaturas.on('update', function(criatura){
-			//console.log('criatura update', criatura)
-			// draw new points
+		 */
+		 this.DB.criaturas.on('newPercurso', function(percurso){
+			console.log('newPercurso', percurso)
+			self.drawPercurso(percurso);
 		 });
 
 		 // on latlng point found!!!
@@ -76,14 +78,22 @@ class Mapeamento extends EventEmitter {
 		console.log('eu', this.DB.criaturas.data.eu)
 		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
 		this.map.panTo(ponto.getLatLng());
+		if(!this.hasFoundInitialPosition) {
+			this.hasFoundInitialPosition = true;
+		}
 		this.DB.pontos.save(ponto)
 
 	}
 
-	drawPercursos(criatura){
+	drawCriatura(criatura){
 		criatura.setPercursos();
 		criatura.draw(this.map);
 	}
+
+	drawPercurso(percurso){
+		percurso.draw(this.map);
+	}
+	
 }
 
 export default Mapeamento

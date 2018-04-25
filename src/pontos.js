@@ -31,7 +31,7 @@ class Pontos extends EventEmitter {
                 
                 let day = services.getDay(timestamp)
 
-                var ponto = new Ponto(criatura, latlng);
+                var ponto = new Ponto(criatura, latlng, timestamp);
                 criatura.pontos[id] = ponto;
 			});	
 			self.emit('loaded', null);	
@@ -56,11 +56,11 @@ class Pontos extends EventEmitter {
                     let criatura = self.criaturas.getCriatura(criatura_id);
                     if(!criatura || data.latlng == undefined) return;                                              
                     // create ponto              
-                    var ponto = new Ponto(criatura,data.latlng);
+                    var ponto = new Ponto(criatura,data.latlng, data.timestamp);
                     // add point to criatura
                     console.log('criatura novo ponto', criatura,  ponto )
                     criatura.pontos[id] = ponto;
-                    criatura.emit('update', ponto);
+                    criatura.emit('update', id);
 				} else {
 					console.log('criatura from point doesnt exist')
 					return; 
@@ -81,7 +81,7 @@ class Pontos extends EventEmitter {
         ponto.setId(ref);
         console.log('point saved', ponto.id);
         // save to criatura obj
-        ponto.criatura.addPonto(ponto.id, ponto);
+        //ponto.criatura.addPonto(ponto.id, ponto);
     }
 }
 
