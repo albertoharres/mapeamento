@@ -48,6 +48,15 @@ var services = {
         else {
            return false;
         }
+    },
+
+    isLocalhost(){
+        let href = window.location.href
+        if(/0.0.0.0/.test(href) || /localhost/.test(href)){
+            return true
+        } else {
+            return false 
+        }
     }
 }
 

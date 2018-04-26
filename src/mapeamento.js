@@ -39,15 +39,7 @@ class Mapeamento extends EventEmitter {
 				}
 			}
 		 })
-		/* 
-		 // on new point from DB
-		 this.DB.on('newPonto', function(criatura_id){
-			console.log('novo ponto');
-			if( self.map != null){							
-				console.log('novo ponto');
-			}
-		 })
-		 */
+		 
 		 this.DB.criaturas.on('newPercurso', function(percurso){
 			console.log('newPercurso', percurso)
 			self.drawPercurso(percurso);

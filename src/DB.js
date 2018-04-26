@@ -1,5 +1,6 @@
 import Criaturas from './Criaturas.js'
 import Pontos from './Pontos.js'
+import services from './services.js'
 
 const EventEmitter = require('events')
 var firebase = require('firebase');
@@ -16,10 +17,14 @@ class DB extends EventEmitter {
 			messagingSenderId: process.env.MESSAGING_SENDER_ID
 		};
 		
+		// if is deploy enveiroment
+		var Canal = '/global'; // canal padrão na raiz
+		if(!services.isLocalhost()) Canal = window.location.pathname;
+		console.log('Canal', Canal)
 		var app = firebase.initializeApp(config);
 		// children objs
-		this.criaturas = new Criaturas(firebase.app().database().ref('/controle_carioca_18_04/criaturas'));	
-		this.pontos = new Pontos(firebase.app().database().ref('/controle_carioca_18_04/pontos'));
+		this.criaturas = new Criaturas(firebase.app().database().ref( Canal + '/criaturas' ));	
+		this.pontos = new Pontos(firebase.app().database().ref( Canal + '/pontos' ));
 		// global db events
 		this.addEvents();
 	}
