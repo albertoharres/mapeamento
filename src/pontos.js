@@ -4,9 +4,11 @@ import services from './services.js'
 const EventEmitter = require('events');
 
 class Pontos extends EventEmitter {
-    constructor(ref){
+    constructor(ref, canal = '/'){
         super();
-        this.ref = ref;                
+        this.ref = ref;
+        this.canal = canal;
+        this.isGlobal = (canal == '/');
     }
 
     init(criaturas){
@@ -17,25 +19,19 @@ class Pontos extends EventEmitter {
     // load initial data
     load(){
         var self = this; 
-        this.ref.once('value', function(snapshot){			
-			snapshot.forEach(function(childSnapshot) {			
-                // first check if creatura with id exists or not
-                let data = childSnapshot.val();      
-                let id = childSnapshot.key;
-                let timestamp = data.timestamp || 0;
-
-                if(data.latlng == undefined || data.latlng == null) return                
-                let latlng = data.latlng;
-                var criatura = self.criaturas.getCriatura(data.criatura_id)
-                if(!criatura || data.latlng == undefined) return;  
-                
-                let day = services.getDay(timestamp)
-
-                var ponto = new Ponto(criatura, latlng, timestamp);
-                criatura.pontos[id] = ponto;
-			});	
-			self.emit('loaded', null);	
-        });		
+        let queryText = this.canal;
+        this.ref.orderByChild('canal')
+                .startAt(queryText)
+                .endAt(queryText+"\uf8ff")
+                .once("value", function(snapshot) {
+            snapshot.forEach(function(childSnapshot) {
+                let data = childSnapshot.val(); 
+                console.log(data.canal)
+                let id = childSnapshot.key;                
+                self.setPonto(id, data);
+            });	
+            self.emit('loaded', null);	
+        });
         
         this.on('loaded', ()=>{
             this.isLoaded = true;            
@@ -44,42 +40,46 @@ class Pontos extends EventEmitter {
 
     addEvents(){
         var self = this;
-		// on new ponto
-		this.ref.limitToLast(1).on('value', function(snapshot) {
-			if(self.isLoaded){
-				let id = Object.keys(snapshot.val())[0];
-				let criatura_id = snapshot.val()[id]['criatura_id'];
-				if( ( criatura_id in self.criaturas.data) ){
-					// set data
-                    let data = snapshot.val()[id];
-                    // get criatura from criatura id
-                    let criatura = self.criaturas.getCriatura(criatura_id);
-                    if(!criatura || data.latlng == undefined) return;                                              
-                    // create ponto              
-                    var ponto = new Ponto(criatura,data.latlng, data.timestamp);
-                    // add point to criatura
-                    console.log('criatura novo ponto', criatura,  ponto )
-                    criatura.pontos[id] = ponto;
-                    criatura.emit('update', id);
-				} else {
-					console.log('criatura from point doesnt exist')
-					return; 
-				}
-			}
-		});
-    }
+		// on new ponto                
+        this.ref.limitToLast(1).on('value', function(snapshot) {
+            if(self.isLoaded) {
+                let id = Object.keys(snapshot.val())[0];
+                let data = snapshot.val()[id];
+                self.setPonto(id, data)
+            }
+        });
+                    
+    }    
 
+    setPonto(id, data){        
+        // data                
+        if(data.latlng == undefined || data.latlng == null) return
+        let latlng = data.latlng;
+        let canal = data.canal || '/';
+        let timestamp = data.timestamp || 0;            
+        // criatura
+        var criatura = this.criaturas.getCriatura(data.criatura_id)
+        if(!criatura) return;        
+        // create ponto              
+        var ponto = new Ponto(criatura, latlng, canal, timestamp)
+        // add point to criatura
+        criatura.pontos[id] = ponto
+        // if is not initial load ... 
+        if(this.isLoaded) criatura.emit('update', id);
+    }
+    
     save(ponto){
         let obj = {
             latlng: ponto.latlng,
             timestamp: ponto.timestamp,
-            criatura_id: ponto.criatura_id
+            criatura_id: ponto.criatura_id,
+            canal: ponto.canal
         }
         // save to DB
         let ref = this.ref.push(obj).ref;
         // set id for point
         ponto.setId(ref);
-        console.log('point saved', ponto.id);
+        console.log('point saved', ponto);
         // save to criatura obj
         //ponto.criatura.addPonto(ponto.id, ponto);
     }

@@ -65,16 +65,16 @@ class Mapeamento extends EventEmitter {
 		window['map'] = this.map;
 	}
 
-	addPosition(latlng){
-		// set position
+	addPosition(latlng){		
 		console.log('eu', this.DB.criaturas.data.eu)
-		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng)
-		this.map.panTo(ponto.getLatLng());
+		var timestamp = new Date().getTime();
+		// criatura , posição, canal, tempo
+		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng, this.DB.canal, timestamp)
 		if(!this.hasFoundInitialPosition) {
+			this.map.panTo(ponto.getLatLng());
 			this.hasFoundInitialPosition = true;
 		}
 		this.DB.pontos.save(ponto)
-
 	}
 
 	drawCriatura(criatura){

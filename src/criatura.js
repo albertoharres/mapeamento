@@ -37,9 +37,7 @@ class Criatura extends EventEmitter {
     }
 
     // when local creature is set from DB
-    set(snapshot, id){
-        //console.log('snapshot', snapshot)
-        //console.log('criatura', snapshot.val(), id)
+    set(snapshot, id){       
         let data = snapshot.val()
         this.name = data.name;
         this.color = data.color;
@@ -55,7 +53,7 @@ class Criatura extends EventEmitter {
             sorted[date_key] = sorted[date_key] == undefined ? {} : sorted[date_key]
             sorted[date_key][i] = this.pontos[i]
         }
-        return sorted; 
+        return sorted;
     }
 
     setPercursos(){

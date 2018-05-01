@@ -1,13 +1,16 @@
 const EventEmitter = require('events');
 
 class Ponto extends EventEmitter {
-    constructor(criatura, latlng, timestamp = null){
+    constructor(criatura, latlng, canal = '/', timestamp = null){
         super();
         this.criatura = criatura;   
-        this.color = this.criatura.color;     
-        this.latlng = (latlng.lat) ? latlng : {lat: latlng.coords.latitude, lng: latlng.coords.longitude};
         this.criatura_id = criatura.id;
+
+        this.color = this.criatura.color;
+        this.latlng = (latlng.lat) ? latlng : {lat: latlng.coords.latitude, lng: latlng.coords.longitude};
+        this.canal = canal;
         this.timestamp = timestamp || new Date().getTime();
+        
         this.setMarker();
     }
 

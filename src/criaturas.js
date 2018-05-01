@@ -7,7 +7,7 @@ class Criaturas extends EventEmitter {
     constructor(ref){
         super();
         this.name = "criatura";
-        this.ref = ref;
+        this.ref = ref;       
         this.data = {};
         this.isLoaded = false;
         this.load();
@@ -22,6 +22,7 @@ class Criaturas extends EventEmitter {
 
     load(){
         var self = this;
+        // initial load criatuas
         this.ref.once('value', function(snapshot){
             // iterar cada criatura
 			snapshot.forEach(function(childSnapshot) {
@@ -50,6 +51,7 @@ class Criaturas extends EventEmitter {
                 console.log('new critura!');
                 var criatura = new Criatura(self);                           
                 let id = Object.keys(snapshot.val())[0];     
+                 // put criatura in obj using id as key
                 self.data[id] = criatura.set(snapshot, id);
 				//self.emit('new', self.data[id])
 			}

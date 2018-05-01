@@ -17,28 +17,34 @@ class DB extends EventEmitter {
 			messagingSenderId: process.env.MESSAGING_SENDER_ID
 		};
 		
-		// if is deploy enveiroment
-		var Canal = '/global'; // canal padrão na raiz
-		if(!services.isLocalhost()) Canal = window.location.pathname;
-		console.log('Canal', Canal)
 		var app = firebase.initializeApp(config);
 		// children objs
-		this.criaturas = new Criaturas(firebase.app().database().ref( Canal + '/criaturas' ));	
-		this.pontos = new Pontos(firebase.app().database().ref( Canal + '/pontos' ));
+		// criaturas são globais, independem do canal
+		
+		this.canal = '/'; // canal padrão na raiz
+		if(!services.isLocalhost()) {
+			var path = window.location.pathname;
+			this.canal = path ;		
+		}
+		// pontos pertencem a canais
+		this.criaturas = new Criaturas(firebase.app().database().ref('/criaturas'));
+		this.pontos = new Pontos(firebase.app().database().ref('/pontos'), this.canal);
+		
 		// global db events
 		this.addEvents();
 	}
 
-	addEvents(){		
+	addEvents(){
+		// first load criaturas
 		this.criaturas.on('loaded', ()=>{
 			console.log('criaturas loaded');
-			// load pontos
+			// then load pontos...
 			this.pontos.init(this.criaturas);
 		})
-
+		// when points also loaded 
 		this.pontos.on('loaded', ()=>{
 			console.log('pontos loaded');
-			// load pontos
+			// DB loaded ! 
 			this.emit('loaded');
 			this.isLoaded = true;
 		})
