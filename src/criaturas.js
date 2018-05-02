@@ -9,7 +9,7 @@ class Criaturas extends EventEmitter {
         this.name = "criatura";
         this.ref = ref;       
         this.data = {};
-        this.isLoaded = false;
+        this.isLoaded = false;        
         this.load();
         this.addEvents();
     }
@@ -18,7 +18,7 @@ class Criaturas extends EventEmitter {
         console.log('set self');
         let eu = new Eu(this);
         return eu;
-    }
+    }    
 
     load(){
         var self = this;
@@ -41,6 +41,20 @@ class Criaturas extends EventEmitter {
             return this.data[criatura_id]
         } else {
             return false; 
+        }
+    }
+
+    getCenter(){
+        var positions = []
+        for(var i in this.data){
+            var criatura = this.data[i]
+            for(var j in criatura.pontos){
+                positions.push(criatura.pontos[j].latlng)
+            }
+        }
+
+        function avarage(array){
+            var x 
         }
     }
 

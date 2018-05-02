@@ -24,6 +24,10 @@ class Mapeamento extends EventEmitter {
 		var googlemaps = '<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFacNeg2lg0_TPHTvl3mXr5_tEWtDIbFQ&callback=window.googlemapsLoaded"></script>'
 		$('body').append(googlemaps);
 		// listen to DB events
+		this.bounds = {
+			sw: {lat: 999999, lng: 999999},
+			ne: {lat: -999999, lng: -999999}
+		}
 		this.addEvents();
 	}
 
@@ -33,8 +37,8 @@ class Mapeamento extends EventEmitter {
 		this.DB.on('loaded',()=>{
 			this.geolocation.watch();
 			// check if points are not set and map is loaded
-			if( this.map != null && !this.isSet ){
-				for( let i in this.DB.criaturas.data ){
+			if( this.map != null && !this.isSet ){									
+				for( let i in this.DB.criaturas.data ){					
 					this.drawCriatura(this.DB.criaturas.data[i]);
 				}
 			}
@@ -78,6 +82,15 @@ class Mapeamento extends EventEmitter {
 	}
 
 	drawCriatura(criatura){
+		for(var j in criatura.pontos){
+			if(criatura.pontos[j].latlng){
+				let l = criatura.pontos[j].latlng;
+				this.bounds.sw.lat = Math.min(this.bounds.sw.lat, l.lat)
+				this.bounds.sw.lng = Math.min(this.bounds.sw.lng, l.lng)
+				this.bounds.ne.lat = Math.max(this.bounds.ne.lat, l.lat)
+				this.bounds.ne.lng = Math.max(this.bounds.ne.lng, l.lng)														
+			}
+		}
 		criatura.setPercursos();
 		criatura.draw(this.map);
 	}

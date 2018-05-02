@@ -5,7 +5,8 @@ const EventEmitter = require('events');
 
 class Geolocation extends EventEmitter {
     constructor(){
-        super();
+        super();        
+        this.list = []
         this.curLoc = {'lat': 0, 'lng': 0}; 
         this.isMobile = services.checkMobile();
         // debug
@@ -56,7 +57,7 @@ class Geolocation extends EventEmitter {
     onFound(loc){
         this.curLoc = {'lat': loc.coords.latitude, 'lng':  loc.coords.longitude};
         this.emit('found', loc);
-    }
+    }    
 
     print(str){
         if(!this.debug) return 

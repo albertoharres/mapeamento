@@ -25,8 +25,7 @@ class Pontos extends EventEmitter {
                 .endAt(queryText+"\uf8ff")
                 .once("value", function(snapshot) {
             snapshot.forEach(function(childSnapshot) {
-                let data = childSnapshot.val(); 
-                console.log(data.canal)
+                let data = childSnapshot.val();
                 let id = childSnapshot.key;                
                 self.setPonto(id, data);
             });	
