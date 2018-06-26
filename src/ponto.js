@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 
 class Ponto extends EventEmitter {
-    constructor(criatura, latlng, canal = '/', timestamp = null){
+    constructor(criatura, latlng, canal = '/', accuracy, timestamp = null){
         super();
         this.criatura = criatura;   
         this.criatura_id = criatura.id;
@@ -21,7 +21,7 @@ class Ponto extends EventEmitter {
     setId(ref){
         let pathArray = ref.path.pieces_;
         let ponto_id = pathArray[pathArray.length-1];
-        this.id = ponto_id;        
+        this.id = ponto_id;
     }
 
     setMarker(){

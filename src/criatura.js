@@ -46,14 +46,38 @@ class Criatura extends EventEmitter {
         return this;
     }
 
+    getLastPoint(){
+        return 'alou'
+        return this.sortByTimestamp(this.pontos)[0];
+    }
+
     getSorted(){
-        var sorted = {};
-        for( let  i in this.pontos ){
-            let date_key = services.getDay(this.pontos[i].timestamp)
+        var sorted = {};    
+        var pontos = this.sortByTimestamp(this.pontos);
+        for( let i in pontos ){        
+            let date_key = services.getDay(pontos[i].timestamp)
             sorted[date_key] = sorted[date_key] == undefined ? {} : sorted[date_key]
-            sorted[date_key][i] = this.pontos[i]
+            sorted[date_key][i] = pontos[i]
         }
         return sorted;
+    }
+
+    sortByTimestamp(pontos){
+        var array = []
+        for(let i in pontos){
+            array.push(pontos[i])
+        }
+        array.sort(function(a, b){
+            if (a.timestamp > b.timestamp) {
+                return 1;
+              }
+              if (a.timestamp < b.timestamp) {
+                return -1;
+              }
+              // a must be equal to b
+              return 0;
+        })
+        return array;
     }
 
     setPercursos(){

@@ -48,6 +48,9 @@ class DB extends EventEmitter {
 			this.emit('loaded');
 			this.isLoaded = true;
 		})
+		firebase.app().database().ref('/criaturas').onDisconnect(()=>{
+			this.criaturas.onDisconnect();
+		})
 	}
 }
 

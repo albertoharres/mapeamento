@@ -7,7 +7,7 @@ class Criaturas extends EventEmitter {
     constructor(ref){
         super();
         this.name = "criatura";
-        this.ref = ref;       
+        this.ref = ref;
         this.data = {};
         this.isLoaded = false;        
         this.load();
@@ -15,7 +15,6 @@ class Criaturas extends EventEmitter {
     }
 
     setSelf(){
-        console.log('set self');
         let eu = new Eu(this);
         return eu;
     }    
@@ -63,7 +62,7 @@ class Criaturas extends EventEmitter {
         this.ref.limitToLast(1).on('value', function(snapshot) {
 			if(self.isLoaded){
                 console.log('new critura!');
-                var criatura = new Criatura(self);                           
+                var criatura = new Criatura(self);                     
                 let id = Object.keys(snapshot.val())[0];     
                  // put criatura in obj using id as key
                 self.data[id] = criatura.set(snapshot, id);
@@ -88,7 +87,13 @@ class Criaturas extends EventEmitter {
           // console.log(criatura, 'updated');   
            self.data[criatura.id] = criatura;
         })
-    }    
+    }
+
+    onDisconnect(){
+        console.log(this.data['eu'])
+        var el = this.ref.child(this.data['eu'].id+'/isConnected').set(false)
+        console.log('el', el);
+    }
 }
 
 export default Criaturas

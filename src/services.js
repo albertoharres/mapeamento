@@ -11,6 +11,7 @@ var services = {
         return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ')';
     },
 
+    
     error(err) {
         console.warn('ERROR(' + err.code + '): ' + err.message);
     },
@@ -30,7 +31,7 @@ var services = {
     getDay(timestamp){
         var minute = 1000 * 60;
 		var hour = minute * 60;
-        var day = hour * 24;
+        var day = hour * 24 * 14;
         return Math.round(timestamp / day)
     },
 

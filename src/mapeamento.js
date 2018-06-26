@@ -35,9 +35,11 @@ class Mapeamento extends EventEmitter {
 		var self = this;						
 		// on DB ready
 		this.DB.on('loaded',()=>{
+			
 			this.geolocation.watch();
 			// check if points are not set and map is loaded
 			if( this.map != null && !this.isSet ){									
+				console.log( this.DB.criaturas.data.eu.pontos, 'data ball')
 				for( let i in this.DB.criaturas.data ){					
 					this.drawCriatura(this.DB.criaturas.data[i]);
 				}
@@ -57,7 +59,7 @@ class Mapeamento extends EventEmitter {
 		 })
 	}
 
-	setMap(){
+	setMap(){		
 		var options = {
 			zoom: 19,
 			center: {lat:-22.970722, lng:-43.182365},
@@ -73,9 +75,9 @@ class Mapeamento extends EventEmitter {
 		console.log('eu', this.DB.criaturas.data.eu)
 		var timestamp = new Date().getTime();
 		// criatura , posição, canal, tempo
-		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng, this.DB.canal, timestamp)
+		var ponto = new Ponto(this.DB.criaturas.data.eu, latlng, this.DB.canal, accuracy, timestamp)
+		this.map.panTo(ponto.getLatLng());
 		if(!this.hasFoundInitialPosition) {
-			this.map.panTo(ponto.getLatLng());
 			this.hasFoundInitialPosition = true;
 		}
 		this.DB.pontos.save(ponto)

@@ -55,12 +55,13 @@ class Pontos extends EventEmitter {
         if(data.latlng == undefined || data.latlng == null) return
         let latlng = data.latlng;
         let canal = data.canal || '/';
-        let timestamp = data.timestamp || 0;            
+        let timestamp = data.timestamp || 0;    
+        let accuracy = data.accuracy || 10;
         // criatura
         var criatura = this.criaturas.getCriatura(data.criatura_id)
         if(!criatura) return;        
         // create ponto              
-        var ponto = new Ponto(criatura, latlng, canal, timestamp)
+        var ponto = new Ponto(criatura, latlng, canal, accuracy, timestamp)
         // add point to criatura
         criatura.pontos[id] = ponto
         // if is not initial load ... 

@@ -12,7 +12,7 @@ class Eu extends Criatura {
         this.$my_cor = $('#user_info .user_cor');
         this.addSelfEvents();     
         if(this.isSetInLocalStorage()){
-            this.setFromLocalData(localStorage['criatura_id']);
+            this.setFromLocalData(localStorage['criatura_id']);        
         } else {
             this.create();
         }
@@ -49,7 +49,7 @@ class Eu extends Criatura {
         console.log('saved to localStorage', localStorage['criatura_id'])
     }
     
-    setFromLocalData(id){
+    setFromLocalData(id){                
         this.name = this.criaturas.data[id].name;
         this.color = this.criaturas.data[id].color || services.random_rgba();      
         this.ref = this.criaturas.data[id].ref;

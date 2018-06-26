@@ -35,14 +35,14 @@ class Geolocation extends EventEmitter {
 			navigator.geolocation.getAccurateCurrentPosition(function(loc){
                 if(loc == undefined) return
 			
-                $('#debug').html(JSON.stringify(loc.coords.accuracy))
+                // $('#debug').html(JSON.stringify(loc.coords.accuracy))
                 if(loc.coords.accuracy > 21 && self.isMobile) { 
                     self.print('low accuracy')   
                    // return; 
                 }
 				if(self.curLoc.lat == loc.coords.latitude && self.curLoc.lng == loc.coords.longitude){
                     self.print('same position!')
-				} else {
+				} else {                    
                     self.print('new position!');
 					self.onFound(loc);
 				}
